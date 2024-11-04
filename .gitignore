@@ -1,3 +1,7 @@
 setup.txt
 **/__pycache__/**
 **.pyc
+experiments/data/processed/**.csv
+experiments/data/raw/**.csv
+experiments/data/raw/**.xlsx
+**.pt
