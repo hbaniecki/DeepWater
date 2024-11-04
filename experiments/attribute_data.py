@@ -1,12 +1,7 @@
 #%%
-import os
-import numpy as np
-import pandas as pd
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import torch.nn as nn
-import torch.optim as optim
-import torch.utils.data as data
 import torcheval.metrics as metrics
 
 #%% parameters
@@ -57,6 +52,7 @@ model.to(device)
 model.eval()
 loader_train = torch.load(f'models/target_feature={target_feature}_threshold_ncount={threshold_ncount}_threshold_time={threshold_time}_n_steps_in={n_steps_in}_n_steps_out={n_steps_out}/loader_train.pt')
 loader_test = torch.load(f'models/target_feature={target_feature}_threshold_ncount={threshold_ncount}_threshold_time={threshold_time}_n_steps_in={n_steps_in}_n_steps_out={n_steps_out}/loader_test.pt')
+loader_train_mini = torch.load(f'models/target_feature={target_feature}_threshold_ncount={threshold_ncount}_threshold_time={threshold_time}_n_steps_in={n_steps_in}_n_steps_out={n_steps_out}/loader_train_mini.pt')
 
 #%%
 #%% https://github.com/trais-lab/dattri
@@ -89,17 +85,14 @@ loader_test = torch.load(f'models/target_feature={target_feature}_threshold_ncou
 
 # %%
 from pydvl.influence import SequentialInfluenceCalculator
-from pydvl.influence.torch import DirectInfluence
+from pydvl.influence.torch import DirectInfluence, EkfacInfluence
 from pydvl.influence.torch.util import (
    NestedTorchCatAggregator,
    TorchNumpyConverter,
-   )
+)
 
 loss = nn.MSELoss()
 
-loader_train_mini = torch.load(f'models/target_feature={target_feature}_threshold_ncount={threshold_ncount}_threshold_time={threshold_time}_n_steps_in={n_steps_in}_n_steps_out={n_steps_out}/loader_train_mini.pt')
-
-infl_model = DirectInfluence(model, loss, hessian_regularization=0.01)
-infl_model = infl_model.fit(loader_train_mini)
-
-# %%
+with torch.no_grad():
+    infl_model = EkfacInfluence(model, loss, hessian_regularization=0.01)
+    infl_model = infl_model.fit(loader_train_mini)
